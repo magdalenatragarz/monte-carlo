@@ -2,27 +2,18 @@ package data.function;
 
 import java.util.List;
 
-public class LimitationFunction implements Function {
+public class LimitationFunction extends Function {
 
-    private List<Double> coefficients;
+
     private String sign;
     private Double constance;
 
     public LimitationFunction(List<Double> coefficients, String sign, Double constance) {
-        this.coefficients = coefficients;
+        super(coefficients);
         this.sign = sign;
         this.constance = constance;
     }
 
-    @Override
-    public List<Double> getCoefficients() {
-        return coefficients;
-    }
-
-    @Override
-    public void addCoefficients(Double coefficient) {
-        coefficients.add(coefficient);
-    }
 
     public String getSign() {
         return sign;

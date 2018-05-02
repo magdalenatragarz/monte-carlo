@@ -1,34 +1,23 @@
 package grid;
 
-import java.util.List;
-
 public class Point {
 
-    private List<Double> point;
+    private Double[] point;
 
-    public List<Double> getPoint() {
+    public Double[] getPoint() {
         return point;
     }
 
-    public Point(List<Double> point) {
+    public Point(Double[] point) {
         this.point = point;
-    }
-
-    public String parseToBracketsForm(){
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        for (Double coordinate : point ) {
-            if ((point.indexOf(coordinate) != point.size()-1)){
-                builder.append(coordinate + ",");
-            }else{
-                builder.append(coordinate + "}");
-            }
-        }
-        return builder.toString();
     }
 
     @Override
     public String toString() {
-        return "point=" + point +"\n";
+        StringBuilder pointBuilder = new StringBuilder();
+        for (int i=0;i<point.length;i++){
+            pointBuilder.append("x"+(i+1)+" = "+point[i]+", ");
+        }
+        return pointBuilder.toString();
     }
 }

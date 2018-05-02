@@ -9,9 +9,9 @@ import java.util.Scanner;
 
 public class DataReader {
 
-    List<LimitationFunction> limitationFunctions;
-    GoalFunction goalFunction;
-    Goal goal;
+    private List<LimitationFunction> limitationFunctions;
+    private GoalFunction goalFunction;
+    private Goal goal;
     int dimension;
 
     public DataReader() {
@@ -25,9 +25,7 @@ public class DataReader {
         goalFunction = readGoalFunction();
         normalizeFunctions();
         goal = readGoal();
-        System.out.println("kjdfksdfksbdfkhsbdjkvbyrvgvyuer");
         dimension = readDimension();
-        System.out.println("dimension readen");
     }
 
     public int getDimension() {
@@ -48,7 +46,6 @@ public class DataReader {
     private List<LimitationFunction> readLimitationFunctions(){
         Scanner scannerFunction = new Scanner(System.in);
         Scanner scannerIngridients = new Scanner(System.in);
-        //Scanner scannerSign = new Scanner(System.in);
 
         List<LimitationFunction> limitationFunctions = new ArrayList<>();
         System.out.println("ENTER to start.");
@@ -92,8 +89,8 @@ public class DataReader {
     private List<Double> coefficientsParser(String coefficientsString){
         String [] coefficientsArray = coefficientsString.split(",");
         List<Double> coefficients = new ArrayList<>();
-        for(int i=0;i<coefficientsArray.length;i++){
-            coefficients.add(Double.parseDouble(coefficientsArray[i]));
+        for (String aCoefficientsArray : coefficientsArray) {
+            coefficients.add(Double.parseDouble(aCoefficientsArray));
         }
         return coefficients;
     }
@@ -115,6 +112,27 @@ public class DataReader {
         return Goal.MAX;
     }
 
+    @Override
+    public String toString() {
+
+        StringBuilder dataBuilder = new StringBuilder();
+        dataBuilder.append("LIMITATION FUNCTIONS:\n");
+        for (LimitationFunction limitationFunction : limitationFunctions) {
+            dataBuilder.append(limitationFunction.getCoefficients().toString())
+                    .append("\n")
+                    .append(limitationFunction.getSign())
+                    .append("\n")
+                    .append(limitationFunction.getConstance())
+                    .append("\n\n\n");
+        }
+
+        dataBuilder.append("GOAL FUNCTION: \n");
+        dataBuilder.append(goalFunction.getCoefficients().toString()).append("\n");
+        dataBuilder.append(goal).append("\n");
+
+        return dataBuilder.toString();
+    }
+
     public List<LimitationFunction> getLimitationFunctions() {
         return limitationFunctions;
     }
@@ -126,4 +144,6 @@ public class DataReader {
     public Goal getGoal() {
         return goal;
     }
+
+
 }

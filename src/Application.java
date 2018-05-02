@@ -2,20 +2,17 @@ import Solver.Solver;
 import data.DataReader;
 import grid.Point;
 
-import java.net.Socket;
-import java.util.Map;
-
 public class Application {
 
     public static void main(String[] args) {
         DataReader reader = new DataReader();
         reader.readData();
-        Solver solver = new Solver(reader);
-        System.out.println("to tu w solwerze");
-        Map.Entry<Double, Point> best = solver.solve();
+        Solver solver = new Solver(reader, 5000.0, 0.0);
 
-        System.out.println(best.getKey().toString());
-        System.out.println(best.getValue().toString());
+        Point point = solver.solve();
+
+        System.out.println(point.toString());
+        System.out.println(solver.getGoalValue(point));
     }
 
 }

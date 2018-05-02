@@ -2,7 +2,6 @@ package Solver;
 
 import data.DataReader;
 import data.Goal;
-import data.function.Function;
 import data.function.LimitationFunction;
 import grid.Grid;
 import grid.Point;
@@ -12,28 +11,96 @@ import java.util.*;
 public class Solver {
 
     private static final Double TOLERANCE = 0.0001;
+    private static final Double ALPHA = 0.8;
+
+    private int dimension;
+
+    private Double[] upperLimitOfValues;
+    private Double[] lowerLimitOfValues;
+
+    private Point currentlyBest;
 
     private DataReader dataReader;
-    private Grid grid;
 
-    public Solver(DataReader dataReader) {
-        //this.dataReader = new DataReader();
+
+    /***********************************************/
+
+    public Solver(DataReader dataReader, Double initialUpperLimit, Double initialLowerLimit) {
         this.dataReader = dataReader;
-        this.grid = new Grid(dataReader.getDimension());
-        //System.out.println(grid.getPoints().toString());
+        this.dimension = dataReader.getDimension();
+
+        this.lowerLimitOfValues = new Double[this.dimension];
+        this.upperLimitOfValues = new Double[this.dimension];
+
+        for (int i = 0; i < dimension; i++) {
+            lowerLimitOfValues[i] = initialLowerLimit;
+            upperLimitOfValues[i] = initialUpperLimit;
+        }
+        currentlyBest = new Point(lowerLimitOfValues);
+
+
     }
 
-    private Double getValue(Function function, Point point) {
-        Double value = 0.0;
-        for (int i = 0; i < dataReader.getDimension(); i++) {
-            value += function.getCoefficients().get(i) * point.getPoint().get(i);
+
+    public Point solve() {
+        Point optimalPoint = findOptimalPoint();
+        currentlyBest = optimalPoint;
+        Double currentlyBestValue = getGoalValue(optimalPoint);
+
+
+        changeLimits(optimalPoint.getPoint());
+        optimalPoint = findOptimalPoint();
+
+        Double nextBest = getGoalValue(optimalPoint);
+
+        while (Math.abs(currentlyBestValue - nextBest) > TOLERANCE) {
+            currentlyBestValue = nextBest;
+            changeLimits(optimalPoint.getPoint());
+            optimalPoint = findOptimalPoint();
+            nextBest = getGoalValue(optimalPoint);
+
         }
-        return value;
+        return optimalPoint;
     }
+
+
+    private Point findOptimalPoint() {
+        Map<Double, Point> meetRequirements = new HashMap<>();
+        Grid grid = new Grid(dimension, upperLimitOfValues, lowerLimitOfValues);
+        for (Point point : grid.getPoints()) {
+            if (meetAllRequirements(point)) {
+                meetRequirements.put(getGoalValue(point), point);
+            }
+        }
+        List<Double> values = createProperlySortedValuesList(meetRequirements);
+
+        if (dataReader.getGoal() == Goal.MAX) {
+            if (getGoalValue(currentlyBest) > getGoalValue(meetRequirements.get(values.get(0)))) {
+                return currentlyBest;
+            }
+        } else {
+            if (getGoalValue(currentlyBest) < getGoalValue(meetRequirements.get(values.get(0)))) {
+                return currentlyBest;
+            }
+        }
+        return meetRequirements.get(values.get(0));
+    }
+
+
+
+    private boolean meetAllRequirements(Point point) {
+        boolean flag = true;
+        for (LimitationFunction limitationFunction : dataReader.getLimitationFunctions()) {
+            if (!meetRequirement(limitationFunction, point)) flag = false;
+        }
+        return flag;
+
+    }
+
 
 
     private boolean meetRequirement(LimitationFunction limitationFunction, Point point) {
-        Double value = getValue(limitationFunction, point);
+        Double value = limitationFunction.getValue(point);
         switch (limitationFunction.getSign()) {
             case (">="):
                 return (value >= limitationFunction.getConstance());
@@ -46,34 +113,7 @@ public class Solver {
         }
     }
 
-    private boolean meetAllRequirements(Point point) {
-        boolean flag = true;
-        for (LimitationFunction limitationFunction : dataReader.getLimitationFunctions()) {
-            if (!meetRequirement(limitationFunction, point)) flag = false;
-        }
-        //if(flag==true) System.out.println(flag);
-        return flag;
 
-    }
-
-
-    private Map<Double, Point> findThoseWhichMeetAllRequirements() {
-        Map<Double, Point> meetRequirements = new HashMap<>();
-        for (Point point : grid.getPoints()) {
-            if (meetAllRequirements(point)) {
-                meetRequirements.put(getValue(dataReader.getGoalFunction(), point), point);
-            }
-        }
-        return meetRequirements;
-    }
-
-    private double createNewRadius(Point theBest, Point middle) {
-        Double radius = 0.0;
-        for (int i = 0; i < dataReader.getDimension(); i++) {
-            radius += Math.pow(theBest.getPoint().get(i) + middle.getPoint().get(i), 2);
-        }
-        return Math.sqrt(radius);
-    }
 
 
     private List<Double> createProperlySortedValuesList(Map<Double, Point> pointsWithValues) {
@@ -87,31 +127,26 @@ public class Solver {
         return values;
     }
 
-    private Map.Entry<Double, Point> findOptimum() {
-        Map<Double, Point> valuesAndPoints = findThoseWhichMeetAllRequirements();
-        List<Double> values = createProperlySortedValuesList(valuesAndPoints);
 
-        Point thBest = valuesAndPoints.get(values.get(0));
-        Point middle = valuesAndPoints.get(values.get(values.size() / 5));
 
-        //Double radius = createNewRadius(thBest, middle);
 
-        //grid.setLowerLimit();
-        grid.createPoints(thBest);
+    private void changeLimits(Double[] optimalPoint) {
+        Double newRadius = (Math.abs(upperLimitOfValues[0] - lowerLimitOfValues[0]) * ALPHA)/2;
 
-        return new AbstractMap.SimpleEntry<>(values.get(0), thBest);
+        for (int i = 0; i < dimension; i++) {
+            upperLimitOfValues[i] = optimalPoint[i] + newRadius;
+            if (optimalPoint[i] - newRadius < 0) {
+                lowerLimitOfValues[i] = 0.0;
+            } else {
+                lowerLimitOfValues[i] = optimalPoint[i] - newRadius;
+            }
+        }
     }
 
 
-    public Map.Entry<Double, Point> solve() {
-        Map.Entry<Double, Point> currentlyBest = findOptimum();
-        Map.Entry<Double, Point> nextBest = findOptimum();
 
-        while (Math.abs(currentlyBest.getKey() - nextBest.getKey()) > TOLERANCE) {
-            currentlyBest = nextBest;
-            nextBest = findOptimum();
-        }
-        return currentlyBest;
+    public Double getGoalValue(Point point) {
+        return dataReader.getGoalFunction().getValue(point);
     }
 
 
