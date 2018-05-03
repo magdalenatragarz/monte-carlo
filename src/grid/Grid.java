@@ -3,23 +3,20 @@ package grid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 public class Grid {
 
     private static final int NUMBER_OF_POINTS = 50000;
 
-    private Double [] upperLimit;
-    private Double [] lowerLimit;
+    private Double[] upperLimit;
+    private Double[] lowerLimit;
 
     private int dimension;
 
     private List<Point> points;
 
 
-
-    public Grid(int dimension,Double [] initialUpperLimit, Double [] initialLowerLimit) {
+    public Grid(int dimension, Double[] initialUpperLimit, Double[] initialLowerLimit) {
         this.dimension = dimension;
         this.lowerLimit = initialLowerLimit;
         this.upperLimit = initialUpperLimit;
@@ -27,16 +24,16 @@ public class Grid {
     }
 
 
-    private Double[] generatePoint(){
-        Double [] point = new Double[dimension];
+    private Double[] generatePoint() {
+        Double[] point = new Double[dimension];
         Random randomizer = new Random();
-        for (int i = 0;i<dimension;i++){
+        for (int i = 0; i < dimension; i++) {
             point[i] = (upperLimit[i] - lowerLimit[i]) * randomizer.nextDouble();
         }
         return point;
     }
 
-    public List<Point> createPoints() {
+    private List<Point> createPoints() {
         List<Point> points = new ArrayList<>();
 
         for (int i = 0; i < NUMBER_OF_POINTS; i++) {

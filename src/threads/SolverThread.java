@@ -22,7 +22,6 @@ public class SolverThread extends Thread{
         this.grid = grid;
         this.startIndex = startIndex;
         this.stopIndex = stopIndex;
-        System.out.println("jestem wontkiem");
     }
 
     @Override

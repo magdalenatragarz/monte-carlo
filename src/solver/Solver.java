@@ -8,7 +8,6 @@ import grid.Point;
 import threads.SolverThread;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 public class Solver {
 
@@ -25,11 +24,10 @@ public class Solver {
 
     private DataReader dataReader;
 
-    private ExecutorService threads;
 
     /***********************************************/
 
-    public Solver(DataReader dataReader, Double initialUpperLimit, Double initialLowerLimit) {
+    public Solver(DataReader dataReader, Double initialLowerLimit, Double initialUpperLimit) {
 
 
         this.dataReader = dataReader;
