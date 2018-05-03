@@ -1,4 +1,4 @@
-import Solver.Solver;
+import solver.Solver;
 import data.DataReader;
 import grid.Point;
 

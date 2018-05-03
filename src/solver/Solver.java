@@ -1,17 +1,20 @@
-package Solver;
+package solver;
 
 import data.DataReader;
 import data.Goal;
 import data.function.LimitationFunction;
 import grid.Grid;
 import grid.Point;
+import threads.SolverThread;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 public class Solver {
 
     private static final Double TOLERANCE = 0.0001;
     private static final Double ALPHA = 0.8;
+    private static final Integer THREADS = 4;
 
     private int dimension;
 
@@ -22,10 +25,13 @@ public class Solver {
 
     private DataReader dataReader;
 
+    private ExecutorService threads;
 
     /***********************************************/
 
     public Solver(DataReader dataReader, Double initialUpperLimit, Double initialLowerLimit) {
+
+
         this.dataReader = dataReader;
         this.dimension = dataReader.getDimension();
 
@@ -43,7 +49,9 @@ public class Solver {
 
 
     public Point solve() {
-        Point optimalPoint = findOptimalPoint();
+        Point optimalPoint;
+
+        optimalPoint = findOptimalPoint();
         currentlyBest = optimalPoint;
         Double currentlyBestValue = getGoalValue(optimalPoint);
 
@@ -67,12 +75,34 @@ public class Solver {
     private Point findOptimalPoint() {
         Map<Double, Point> meetRequirements = new HashMap<>();
         Grid grid = new Grid(dimension, upperLimitOfValues, lowerLimitOfValues);
-        for (Point point : grid.getPoints()) {
-            if (meetAllRequirements(point)) {
-                meetRequirements.put(getGoalValue(point), point);
+        List<Double> values;
+
+        SolverThread[] threads = new SolverThread[THREADS];
+
+        for (int i = 0; i < THREADS; i++) {
+            Integer start = (grid.getPoints().size() / THREADS) * i;
+            Integer stop = (grid.getPoints().size() / THREADS) * i + (grid.getPoints().size() / THREADS);
+
+            threads[i] = new SolverThread(
+                    this,
+                    grid,
+                    meetRequirements,
+                    start,
+                    stop);
+
+            threads[i].run();
+        }
+
+        for (int i = 0; i < THREADS; i++) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        List<Double> values = createProperlySortedValuesList(meetRequirements);
+
+
+        values = createProperlySortedValuesList(meetRequirements);
 
         if (dataReader.getGoal() == Goal.MAX) {
             if (getGoalValue(currentlyBest) > getGoalValue(meetRequirements.get(values.get(0)))) {
@@ -87,8 +117,7 @@ public class Solver {
     }
 
 
-
-    private boolean meetAllRequirements(Point point) {
+    public boolean meetAllRequirements(Point point) {
         boolean flag = true;
         for (LimitationFunction limitationFunction : dataReader.getLimitationFunctions()) {
             if (!meetRequirement(limitationFunction, point)) flag = false;
@@ -96,7 +125,6 @@ public class Solver {
         return flag;
 
     }
-
 
 
     private boolean meetRequirement(LimitationFunction limitationFunction, Point point) {
@@ -107,13 +135,11 @@ public class Solver {
             case ("<="):
                 return (value <= limitationFunction.getConstance());
             case ("=="):
-                return (value == limitationFunction.getConstance());
+                return (Objects.equals(value, limitationFunction.getConstance()));
             default:
                 return false;
         }
     }
-
-
 
 
     private List<Double> createProperlySortedValuesList(Map<Double, Point> pointsWithValues) {
@@ -128,10 +154,8 @@ public class Solver {
     }
 
 
-
-
     private void changeLimits(Double[] optimalPoint) {
-        Double newRadius = (Math.abs(upperLimitOfValues[0] - lowerLimitOfValues[0]) * ALPHA)/2;
+        Double newRadius = (Math.abs(upperLimitOfValues[0] - lowerLimitOfValues[0]) * ALPHA) / 2;
 
         for (int i = 0; i < dimension; i++) {
             upperLimitOfValues[i] = optimalPoint[i] + newRadius;
@@ -142,7 +166,6 @@ public class Solver {
             }
         }
     }
-
 
 
     public Double getGoalValue(Point point) {
