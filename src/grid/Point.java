@@ -16,8 +16,9 @@ public class Point {
     public String toString() {
         StringBuilder pointBuilder = new StringBuilder();
         for (int i=0;i<point.length;i++){
-            pointBuilder.append("x"+(i+1)+" = "+point[i]+", ");
+            pointBuilder.append("x"+(i+1)+" = "+point[i]+"\n");
         }
+        pointBuilder.append("\n\n");
         return pointBuilder.toString();
     }
 }

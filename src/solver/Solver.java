@@ -11,7 +11,7 @@ import java.util.*;
 
 public class Solver {
 
-    private static final Double TOLERANCE = 0.0001;
+    private static final Double TOLERANCE = 0.000001;
     private static final Double ALPHA = 0.8;
     private static final Integer THREADS = 4;
 
@@ -46,7 +46,17 @@ public class Solver {
     }
 
 
-    public Point solve() {
+    public Point solve(){
+        Point point = null;
+        try {
+            point = findSolution();
+        }catch (IndexOutOfBoundsException e){
+            point = findSolution();
+        }
+        return point;
+    }
+
+    private Point findSolution() {
         Point optimalPoint;
 
         optimalPoint = findOptimalPoint();
@@ -151,9 +161,17 @@ public class Solver {
         return values;
     }
 
+    private double findBiggestDifference(){
+        double biggestDifference = 0;
+        for (int i = 0;i<dimension;i++){
+            if (Math.abs(upperLimitOfValues[i] - lowerLimitOfValues[i])>biggestDifference) biggestDifference = Math.abs(upperLimitOfValues[i] - lowerLimitOfValues[i]);
+        }
+        return biggestDifference;
+    }
+
 
     private void changeLimits(Double[] optimalPoint) {
-        Double newRadius = (Math.abs(upperLimitOfValues[0] - lowerLimitOfValues[0]) * ALPHA) / 2;
+        Double newRadius = findBiggestDifference() / 2;
 
         for (int i = 0; i < dimension; i++) {
             upperLimitOfValues[i] = optimalPoint[i] + newRadius;

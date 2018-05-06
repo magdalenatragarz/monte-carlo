@@ -4,6 +4,7 @@ import data.function.GoalFunction;
 import data.function.LimitationFunction;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -12,7 +13,7 @@ public class DataReader {
     private List<LimitationFunction> limitationFunctions;
     private GoalFunction goalFunction;
     private Goal goal;
-    int dimension;
+    private int dimension;
 
     public DataReader() {
 
@@ -21,11 +22,17 @@ public class DataReader {
     public void readData(){
         sayHello();
 
-        limitationFunctions = readLimitationFunctions();
-        goalFunction = readGoalFunction();
-        normalizeFunctions();
-        goal = readGoal();
-        dimension = readDimension();
+        try {
+            limitationFunctions = readLimitationFunctions();
+            goalFunction = readGoalFunction();
+            normalizeFunctions();
+            goal = readGoal();
+            dimension = readDimension();
+        }catch (InputMismatchException | NumberFormatException e) {
+            System.out.println("Incorrect Format");
+            System.exit(1);
+            e.printStackTrace();
+        }
     }
 
     public int getDimension() {
@@ -34,7 +41,7 @@ public class DataReader {
 
     private void sayHello(){
         String communicate = "========Monte Carlo========\n" +
-                "Linear Programming \n \n \n";
+                "\tLinear Programming \n \n ";
         System.out.println(communicate);
     }
 
@@ -45,7 +52,6 @@ public class DataReader {
 
     private List<LimitationFunction> readLimitationFunctions(){
         Scanner scannerFunction = new Scanner(System.in);
-        Scanner scannerIngridients = new Scanner(System.in);
 
         List<LimitationFunction> limitationFunctions = new ArrayList<>();
         System.out.println("ENTER to start.");
@@ -61,6 +67,7 @@ public class DataReader {
             Double constance = scannerFunction.nextDouble();
             limitationFunctions.add(new LimitationFunction(coefficientsParser(coefficients),sign.replaceAll(" ",""),constance));
             functionLine = scannerFunction.nextLine();
+            if (!sign.equals("<=") && !sign.equals(">=") && !sign.equals("==")) throw new InputMismatchException();
         }
         return limitationFunctions;
     }
